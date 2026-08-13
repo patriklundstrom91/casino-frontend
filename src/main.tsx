@@ -35,9 +35,9 @@ createRoot(document.getElementById("root")!).render(
     />
     <ClerkProvider
       publishableKey={PUBLISHABLE_KEY}
-      signInUrl="/casino/sign-in"
-      signUpUrl="/casino/sign-up"
-      afterSignOutUrl="/casino/"
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignOutUrl="/"
     >
       <QueryClientProvider client={queryClient}>
         <App />
