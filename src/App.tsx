@@ -13,7 +13,7 @@ import { Account } from "./components/Account";
 
 function App() {
   return (
-    <Router basename="/casino">
+    <Router>
       <Routes>
         <Route
           path="/"
