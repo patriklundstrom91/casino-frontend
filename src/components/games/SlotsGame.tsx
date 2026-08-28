@@ -11,7 +11,7 @@ export function SlotsGame() {
   const navigate = useNavigate();
   const { apiFetch } = useApi();
   const { user: clerkUser } = useUser();
-  const { user, refetch } = useApiUser();
+  const { user, refetch, isLoading } = useApiUser();
   const [isSpinning, setIsSpinning] = useState(false);
   const [reels, setReels] = useState(["Cherry", "Lemon", "Bell"]);
   const [selectedBet, setSelectedBet] = useState(10);
@@ -81,7 +81,13 @@ export function SlotsGame() {
     };
     return icons[symbol] || symbol;
   };
-
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="loading loading-ring loading-xl"></span>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -149,7 +155,7 @@ export function SlotsGame() {
           </div>
 
           <div className="mb-12 sm:mb-16 flex justify-center">
-            <div className="grid grid-cols-3 gap-4 sm:gap-8 p-6 sm:p-12 bg-black/40 rounded-2xl sm:rounded-3xl backdrop-blur-xl border-4 border-white/20 shadow-2xl w-full max-w-md sm:max-w-4xl">
+            <div className="grid grid-cols-3 gap-4 place-items-center sm:gap-8 p-6 sm:p-12 bg-black/40 rounded-2xl sm:rounded-3xl backdrop-blur-xl border-4 border-white/20 shadow-2xl w-full max-w-md sm:max-w-4xl">
               {reels.map((symbol, i) => (
                 <div
                   key={i}
