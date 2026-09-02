@@ -4,6 +4,7 @@ import { Coins, Dices } from "lucide-react";
 import { useEffect, useState } from "react";
 import CustomUserButton from "./CustomUserButton";
 import { useApi } from "../api/useApi";
+import { useApiUser } from "../api/useApiUser";
 
 interface GameSession {
   id: number;
@@ -31,11 +32,20 @@ interface AccountInfo {
   casinoTransactions: CasinoTransaction[];
 }
 
+interface CashierModalProps {
+  open: boolean;
+  onClose: () => void;
+  tab: "deposit" | "withdraw";
+  setTab: (t: "deposit" | "withdraw") => void;
+}
+
 export function Account() {
   const navigate = useNavigate();
   const { user, isLoaded } = useUser();
   const [account, setAccount] = useState<AccountInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cashierOpen, setCashierOpen] = useState(false);
+  const [cashierTab, setCashierTab] = useState<"deposit" | "withdraw">("deposit");
   const apiFetch = useApi().apiFetch;
   const userName =
     user?.firstName ||
@@ -129,6 +139,26 @@ export function Account() {
             <h1 className="mb-3 flex items-center justify-center gap-3">
               Welcome {userName}
             </h1>
+            <div className="mb-3 flex items-center justify-center gap-3">
+              <button
+                onClick={() => {
+                  setCashierTab("deposit");
+                  setCashierOpen(true);
+                }}
+                className="px-4 py-2 bg-green-500/20 text-green-400 border border-green-500/40 rounded-xl hover:bg-green-500/30 transition"
+              >
+                Deposit
+              </button>
+              <button
+                onClick={() => {
+                  setCashierTab("withdraw");
+                  setCashierOpen(true);
+                }}
+                className="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/40 rounded-xl hover:bg-red-500/30 transition"
+              >
+                Withdraw
+              </button>
+            </div>
             <div className="space-y-6 sm:grid sm:grid-cols-2 sm:gap-6 sm:space-y-0">
               {/* Game Sessions */}
               <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-white/20 shadow-2xl">
@@ -227,48 +257,59 @@ export function Account() {
                   </div>
                 ) : account?.casinoTransactions.length ? (
                   <div className="space-y-3">
-                    {account.casinoTransactions.map((transaction) => (
-                      <div
-                        key={transaction.id}
-                        className="flex items-center justify-between p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-                      >
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${
-                              transaction.type === "Deposit"
-                                ? "bg-green-500/20 text-green-400 border-2 border-green-500/30"
-                                : "bg-red-500/20 text-red-400 border-2 border-red-500/30"
-                            }`}
-                          >
-                            {transaction.type === "Deposit" ? "↑" : "↓"}
+                    {account.casinoTransactions
+                      .sort(
+                        (a, b) =>
+                          new Date(b.createdAt).getTime() -
+                          new Date(a.createdAt).getTime()
+                      )
+                      .slice(0, 10)
+                      .map((transaction) => (
+                        <div
+                          key={transaction.id}
+                          className="flex items-center justify-between p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div
+                              className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${
+                                transaction.type === "Deposit"
+                                  ? "bg-green-500/20 text-green-400 border-2 border-green-500/30"
+                                  : "bg-red-500/20 text-red-400 border-2 border-red-500/30"
+                              }`}
+                            >
+                              {transaction.type === "Deposit" ? "↑" : "↓"}
+                            </div>
+
+                            <div className="min-w-0">
+                              <p className="font-semibold text-white truncate text-sm">
+                                {transaction.type === "Deposit"
+                                  ? "Deposit"
+                                  : transaction.type}
+                              </p>
+
+                              <p className="text-xs text-gray-400 truncate">
+                                {transaction.gameType || "Account"}
+                              </p>
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-semibold text-white truncate text-sm">
-                              {transaction.type}
+
+                          <div className="text-right shrink-0">
+                            <p
+                              className={`text-xl sm:text-2xl font-black ${
+                                transaction.type === "Deposit"
+                                  ? "text-green-400"
+                                  : "text-red-400"
+                              }`}
+                            >
+                              ${transaction.amount.toFixed(2)}
                             </p>
-                            <p className="text-xs text-gray-400 truncate">
-                              {transaction.gameType || "Account"}
+
+                            <p className="text-xs text-gray-500 hidden sm:block">
+                              {new Date(transaction.createdAt).toLocaleDateString("en-US")}
                             </p>
                           </div>
                         </div>
-                        <div className="text-right shrink-0">
-                          <p
-                            className={`text-xl sm:text-2xl font-black ${
-                              transaction.type === "Deposit"
-                                ? "text-green-400"
-                                : "text-red-400"
-                            }`}
-                          >
-                            ${transaction.amount.toFixed(2)}
-                          </p>
-                          <p className="text-xs text-gray-500 hidden sm:block">
-                            {new Date(transaction.createdAt).toLocaleDateString(
-                              "en-US"
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 ) : (
                   <div className="text-center py-12 text-gray-400">
@@ -280,8 +321,97 @@ export function Account() {
             <button className="btn mt-4" onClick={() => navigate("/")}>
               ← Lobby
             </button>
+            <CashierModal
+              open={cashierOpen}
+              onClose={() => setCashierOpen(false)}
+              tab={cashierTab}
+              setTab={setCashierTab}
+            />
           </div>
         </main>
+      </div>
+    </div>
+  );
+}
+
+function CashierModal({ open, onClose, tab, setTab }: CashierModalProps) {
+  const { createStripeSession, withdraw } = useApiUser();
+  const [amount, setAmount] = useState(0);
+
+  if (!open) return null;
+
+  const handleDeposit = () => {
+    if (amount <= 0) return;
+    createStripeSession(amount);
+  };
+
+  const handleWithdraw = () => {
+    if (Number(amount) <= 0) return;
+    withdraw(Number(amount));
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-xl flex items-center justify-center z-50">
+      <div className="bg-gray-900 p-8 rounded-2xl border border-white/20 w-full max-w-md shadow-2xl">
+        <h2 className="text-2xl font-bold text-white mb-6 text-center">
+          Cashier
+        </h2>
+        {/* Tabs */}
+        <div className="flex mb-6">
+          <button
+            onClick={() => setTab("deposit")}
+            className={`flex-1 py-2 rounded-l-xl ${
+              tab === "deposit"
+                ? "bg-green-500/30 text-green-300 border border-green-500/40"
+                : "bg-white/10 text-gray-400"
+            }`}
+          >
+            Deposit
+          </button>
+          <button
+            onClick={() => setTab("withdraw")}
+            className={`flex-1 py-2 rounded-r-xl ${
+              tab === "withdraw"
+                ? "bg-red-500/30 text-red-300 border border-red-500/40"
+                : "bg-white/10 text-gray-400"
+            }`}
+          >
+            Withdraw
+          </button>
+        </div>
+        {/* Amount input */}
+        <input
+          type="number"
+          min="1"
+          value={amount}
+          onChange={(e) => setAmount(Number(e.target.value))}
+          className="w-full p-3 rounded bg-gray-800 text-white border border-gray-700 focus:border-green-400 mb-6"
+          placeholder="Amount"
+        />
+        {/* Action button */}
+        {tab === "deposit" ? (
+          <button
+            onClick={handleDeposit}
+            className="w-full py-3 bg-green-500 hover:bg-green-600 rounded-xl font-bold text-white"
+          >
+            Deposit {amount} kr
+          </button>
+        ) : (
+          <button
+            onClick={handleWithdraw}
+            className="w-full py-3 bg-red-500 hover:bg-red-600 rounded-xl font-bold text-white"
+          >
+            Withdraw {amount} kr
+          </button>
+        )}
+        {/* Close */}
+        <button
+          onClick={onClose}
+          className="mt-6 w-full py-2 text-gray-400 hover:text-white"
+        >
+          Close
+        </button>
       </div>
     </div>
   );

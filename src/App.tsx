@@ -10,6 +10,8 @@ import { CasinoLobby } from "./components/CasinoLobby";
 import { Dices, Sparkles } from "lucide-react";
 import { SlotsGame } from "./components/games/SlotsGame";
 import { Account } from "./components/Account";
+import DepositPage from "./components/DepositPage";
+import DepositSuccess from "./components/Deposit-success";
 
 function App() {
   return (
@@ -72,6 +74,22 @@ function App() {
           element={
             <SignedIn>
               <Account />
+            </SignedIn>
+          }
+        />
+        <Route
+          path="/deposit"
+          element={
+            <SignedIn>
+              <DepositPage />
+            </SignedIn>
+          }
+        />
+        <Route
+          path="/deposit-success"
+          element={
+            <SignedIn>
+              <DepositSuccess />
             </SignedIn>
           }
         />
