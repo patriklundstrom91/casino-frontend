@@ -123,6 +123,8 @@ export function useApiUser() {
         ...old,
         balance: data.balance,
       }));
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+
       toast.success("Withdrawal successful!");
     },
   });
