@@ -335,7 +335,7 @@ export function Account() {
 }
 
 function CashierModal({ open, onClose, tab, setTab }: CashierModalProps) {
-  const { createStripeSession, withdraw } = useApiUser();
+  const { createStripeSession, withdraw, refetch } = useApiUser();
   const [amount, setAmount] = useState(0);
 
   if (!open) return null;
@@ -345,9 +345,10 @@ function CashierModal({ open, onClose, tab, setTab }: CashierModalProps) {
     createStripeSession(amount);
   };
 
-  const handleWithdraw = () => {
+  const handleWithdraw = async () => {
     if (Number(amount) <= 0) return;
-    withdraw(Number(amount));
+    await withdraw(Number(amount));
+    await refetch();
     onClose();
   };
 
