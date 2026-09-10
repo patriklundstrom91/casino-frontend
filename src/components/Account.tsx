@@ -59,13 +59,16 @@ export function Account() {
   }, [user, isLoaded]);
   
   const refreshAccount = () => {
+    console.log("REFRESH ACCOUNT TRIGGERED");
     fetchAccount();
   };
   const fetchAccount = async () => {
+    console.log("FETCHING ACCOUNT...");
     try {
       const res = await apiFetch("/user/account", {
         method: "GET",
       });
+      console.log("ACCOUNT RESPONSE:", res);
       setAccount(res);
     } catch (error) {
       console.error("Failed to load account:", error);
