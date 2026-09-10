@@ -37,6 +37,7 @@ interface CashierModalProps {
   onClose: () => void;
   tab: "deposit" | "withdraw";
   setTab: (t: "deposit" | "withdraw") => void;
+  onRefresh?: () => void;
 }
 
 export function Account() {
@@ -53,10 +54,13 @@ export function Account() {
     user?.primaryEmailAddress?.emailAddress.split("@")[0];
 
   useEffect(() => {
-    if (!isLoaded || !user || cashierOpen) return;
+    if (!isLoaded || !user) return;
     fetchAccount();
-  }, [user, isLoaded, cashierOpen]);
-
+  }, [user, isLoaded]);
+  
+  const refreshAccount = () => {
+    fetchAccount();
+  };
   const fetchAccount = async () => {
     try {
       const res = await apiFetch("/user/account", {
@@ -326,6 +330,7 @@ export function Account() {
               onClose={() => setCashierOpen(false)}
               tab={cashierTab}
               setTab={setCashierTab}
+              onRefresh={refreshAccount}
             />
           </div>
         </main>
@@ -334,7 +339,7 @@ export function Account() {
   );
 }
 
-function CashierModal({ open, onClose, tab, setTab }: CashierModalProps) {
+function CashierModal({ open, onClose, tab, setTab, onRefresh }: CashierModalProps) {
   const { createStripeSession, withdraw } = useApiUser();
   const [amount, setAmount] = useState(0);
 
@@ -348,7 +353,7 @@ function CashierModal({ open, onClose, tab, setTab }: CashierModalProps) {
   const handleWithdraw = async () => {
     if (Number(amount) <= 0) return;
     await withdraw(Number(amount));
-  
+    if(onRefresh) onRefresh();
     onClose();
   };
 
