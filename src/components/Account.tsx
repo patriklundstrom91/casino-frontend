@@ -53,9 +53,9 @@ export function Account() {
     user?.primaryEmailAddress?.emailAddress.split("@")[0];
 
   useEffect(() => {
-    if (!isLoaded || !user) return;
+    if (!isLoaded || !user || cashierOpen) return;
     fetchAccount();
-  }, [user, isLoaded]);
+  }, [user, isLoaded, cashierOpen]);
 
   const fetchAccount = async () => {
     try {
@@ -335,7 +335,7 @@ export function Account() {
 }
 
 function CashierModal({ open, onClose, tab, setTab }: CashierModalProps) {
-  const { createStripeSession, withdraw, refetch } = useApiUser();
+  const { createStripeSession, withdraw } = useApiUser();
   const [amount, setAmount] = useState(0);
 
   if (!open) return null;
@@ -348,7 +348,7 @@ function CashierModal({ open, onClose, tab, setTab }: CashierModalProps) {
   const handleWithdraw = async () => {
     if (Number(amount) <= 0) return;
     await withdraw(Number(amount));
-    await refetch();
+  
     onClose();
   };
 
