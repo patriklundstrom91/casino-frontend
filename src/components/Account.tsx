@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import CustomUserButton from "./CustomUserButton";
 import { useApi } from "../api/useApi";
 import { useApiUser } from "../api/useApiUser";
+import { resolve } from "path";
 
 interface GameSession {
   id: number;
@@ -345,6 +346,7 @@ export function Account() {
 function CashierModal({ open, onClose, tab, setTab, onRefresh }: CashierModalProps) {
   const { createStripeSession, withdraw } = useApiUser();
   const [amount, setAmount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!open) return null;
 
@@ -355,8 +357,11 @@ function CashierModal({ open, onClose, tab, setTab, onRefresh }: CashierModalPro
 
   const handleWithdraw = async () => {
     if (Number(amount) <= 0) return;
+    setIsLoading(true);
     await withdraw(Number(amount));
+    await new Promise(resolve => setTimeout(resolve, 500));
     if(onRefresh) onRefresh();
+    setIsLoading(false);
     onClose();
   };
 
@@ -403,15 +408,17 @@ function CashierModal({ open, onClose, tab, setTab, onRefresh }: CashierModalPro
           <button
             onClick={handleDeposit}
             className="w-full py-3 bg-green-500 hover:bg-green-600 rounded-xl font-bold text-white"
+            disabled={isLoading}
           >
-            Deposit {amount} kr
+            {isLoading? "Processing.." : `Deposit ${amount} kr`}
           </button>
         ) : (
           <button
             onClick={handleWithdraw}
             className="w-full py-3 bg-red-500 hover:bg-red-600 rounded-xl font-bold text-white"
+            disabled={isLoading}
           >
-            Withdraw {amount} kr
+            {isLoading? "Processing.." : `Withdraw ${amount} kr`}
           </button>
         )}
         {/* Close */}
